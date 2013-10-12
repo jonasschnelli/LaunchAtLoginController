@@ -27,6 +27,9 @@
 static NSString *const StartAtLoginKey = @"launchAtLogin";
 
 @interface LaunchAtLoginController ()
+{
+    NSArray *listSnapshot;
+}
 @property(assign) LSSharedFileListRef loginItems;
 @end
 
@@ -58,6 +61,11 @@ void sharedFileListDidChange(LSSharedFileListRef inList, void *context)
     LSSharedFileListRemoveObserver(loginItems, CFRunLoopGetMain(),
         (CFStringRef)NSDefaultRunLoopMode, sharedFileListDidChange, (__bridge void *)(self));
     CFRelease(loginItems);
+    
+    if(listSnapshot)
+    {
+        CFRelease((__bridge CFTypeRef)(listSnapshot));
+    }
 }
 
 #pragma mark Launch List Control
@@ -67,7 +75,11 @@ void sharedFileListDidChange(LSSharedFileListRef inList, void *context)
     if (wantedURL == NULL || fileList == NULL)
         return NULL;
 
-    NSArray *listSnapshot = (__bridge NSArray *)(LSSharedFileListCopySnapshot(fileList, NULL));
+    if(listSnapshot)
+    {
+        CFRelease((__bridge CFTypeRef)(listSnapshot));
+    }
+    listSnapshot = (__bridge NSArray *)(LSSharedFileListCopySnapshot(fileList, NULL));
     for (id itemObject in listSnapshot) {
         LSSharedFileListItemRef item = (__bridge LSSharedFileListItemRef) itemObject;
         UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
